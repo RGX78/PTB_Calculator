@@ -127,7 +127,7 @@
         const App = () => {
             const [bapsOrder, setBapsOrder] = useState('');
             const [rollsOrder, setRollsOrder] = useState('');
-            const [mixers, setMixers] = useState([]); // [{type: 'FULL', capacity: 975}, ...]
+            const [mixers, setMixers] = useState([]); // [{type: 'FULL', weightCap: 84.0}, ...]
             const [autoMode, setAutoMode] = useState(true);
 
             const [checkedBapsTrolleys, setCheckedBapsTrolleys] = useState([]);
@@ -540,7 +540,7 @@
                                         <div className="p-0">
                                             {schedule.map((mixer, idx) => {
                                                 const isSplit = mixer.baps > 0 && mixer.rolls > 0;
-                                                const isSmall = mixer.capacity === SMALL_CAPACITY;
+                                                const isSmall = mixer.weightCap === SMALL_MIXER_WEIGHT;
 
                                                 let rowBg = isSplit ? 'bg-red-50' : (isSmall ? 'bg-purple-50/50' : '');
                                                 let circleColor = isSplit ? 'bg-red-200 text-red-800' : (isSmall ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700');
