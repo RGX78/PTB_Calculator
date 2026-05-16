@@ -160,10 +160,15 @@
                 let fallbackConfig = { full: 0, small: 0, buffer: Infinity };
                 let minAbs = Infinity;
 
+                const bW = Number(bapsOrder) || 0;
+                const rW = Number(rollsOrder) || 0;
+                const totalW = bW + rW;
+                const currentAvgW = totalW > 0 ? (bW * BAPS_WEIGHT + rW * ROLLS_WEIGHT) / totalW : BAPS_WEIGHT;
+
                 for (let f = 0; f <= 15; f++) {
                     for (let s = 0; s <= 3; s++) {
-                        const fullCapPcs = Math.floor(FULL_MIXER_WEIGHT / BAPS_WEIGHT);
-                        const smallCapPcs = Math.floor(SMALL_MIXER_WEIGHT / BAPS_WEIGHT);
+                        const fullCapPcs = Math.floor(FULL_MIXER_WEIGHT / currentAvgW);
+                        const smallCapPcs = Math.floor(SMALL_MIXER_WEIGHT / currentAvgW);
 
                         const prod = f * fullCapPcs + s * smallCapPcs;
                         const buffer = prod - total;
