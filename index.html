@@ -438,7 +438,10 @@
                                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
                                     <div>
                                         <p className="font-medium">Full mixers</p>
-                                        <p className="text-xs text-gray-400">84kg</p>
+                                        <p className="text-[10px] text-gray-400 leading-tight">
+                                            <span className="font-bold text-blue-500 text-xs">84kg</span><br />
+                                            Baps: 933 / Rolls: 884
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleManualChange('full', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
@@ -449,7 +452,10 @@
                                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
                                     <div>
                                         <p className="font-medium">Small mixers</p>
-                                        <p className="text-xs text-gray-400">56kg</p>
+                                        <p className="text-[10px] text-gray-400 leading-tight">
+                                            <span className="font-bold text-blue-500 text-xs">56kg</span><br />
+                                            Baps: 622 / Rolls: 589
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleManualChange('small', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
