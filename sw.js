@@ -1,8 +1,7 @@
-const CACHE_NAME = 'bakery-calc-v1';
+const CACHE_NAME = 'bakery-calc-v2';
 const ASSETS = [
   './',
   './index.html',
-  './Code.txt',
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone/babel.min.js',
@@ -12,9 +11,10 @@ const ASSETS = [
 
 // Instalacja - cachowanie zasobów
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Wymuś natychmiastową aktywację
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Cachowanie zasobów...');
+      console.log('Cachowanie zasobów (v2)...');
       return cache.addAll(ASSETS);
     })
   );
@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim()) // Natychmiastowe przejęcie kontroli
   );
 });
 
@@ -35,8 +35,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Zwróć z cache lub pobierz z sieci
-      return cachedResponse || fetch(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((response) => {
+        // Opcjonalnie: można tu dopisać automatyczne cachowanie nowych rzeczy
+        return response;
+      });
     })
   );
 });
