@@ -122,6 +122,7 @@
         const Circle = (props) => <Icon name="circle" {...props} />;
         const ChevronUp = (props) => <Icon name="chevron-up" {...props} />;
         const ChevronDown = (props) => <Icon name="chevron-down" {...props} />;
+        const ClipboardList = (props) => <Icon name="clipboard-list" {...props} />;
 
         const App = () => {
             const [bapsOrder, setBapsOrder] = useState('');
@@ -138,10 +139,11 @@
 
             const [bapsTotalOffset, setBapsTotalOffset] = useState(0);
             const [rollsTotalOffset, setRollsTotalOffset] = useState(0);
+            const [showRecipe, setShowRecipe] = useState(false);
 
-            const FULL_CAPACITY = 975;
-            const SMALL_CAPACITY = 650;
-            const MAX_BUFFER = 150;
+            const FULL_MIXER_WEIGHT = 84.0;
+            const SMALL_MIXER_WEIGHT = 56.0;
+            const MAX_BUFFER_PCS = 150;
             const BAPS_WEIGHT = 0.090;
             const ROLLS_WEIGHT = 0.095;
 
@@ -160,10 +162,13 @@
 
                 for (let f = 0; f <= 15; f++) {
                     for (let s = 0; s <= 3; s++) {
-                        const prod = f * FULL_CAPACITY + s * SMALL_CAPACITY;
+                        const fullCapPcs = Math.floor(FULL_MIXER_WEIGHT / BAPS_WEIGHT);
+                        const smallCapPcs = Math.floor(SMALL_MIXER_WEIGHT / BAPS_WEIGHT);
+
+                        const prod = f * fullCapPcs + s * smallCapPcs;
                         const buffer = prod - total;
 
-                        if (buffer >= 0 && buffer <= MAX_BUFFER && buffer < bestConfig.buffer) {
+                        if (buffer >= 0 && buffer <= MAX_BUFFER_PCS && buffer < bestConfig.buffer) {
                             bestConfig = { full: f, small: s, buffer: buffer };
                         }
 
@@ -176,11 +181,11 @@
 
                 const newMixers = [];
                 if (bestConfig.buffer !== Infinity) {
-                    for (let i = 0; i < bestConfig.full; i++) newMixers.push({ type: 'FULL', capacity: FULL_CAPACITY });
-                    for (let i = 0; i < bestConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', capacity: SMALL_CAPACITY });
+                    for (let i = 0; i < bestConfig.full; i++) newMixers.push({ type: 'FULL', weightCap: FULL_MIXER_WEIGHT });
+                    for (let i = 0; i < bestConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', weightCap: SMALL_MIXER_WEIGHT });
                 } else {
-                    for (let i = 0; i < fallbackConfig.full; i++) newMixers.push({ type: 'FULL', capacity: FULL_CAPACITY });
-                    for (let i = 0; i < fallbackConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', capacity: SMALL_CAPACITY });
+                    for (let i = 0; i < fallbackConfig.full; i++) newMixers.push({ type: 'FULL', weightCap: FULL_MIXER_WEIGHT });
+                    for (let i = 0; i < fallbackConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', weightCap: SMALL_MIXER_WEIGHT });
                 }
                 setMixers(newMixers);
             }, [bapsOrder, rollsOrder, autoMode]);
@@ -191,10 +196,11 @@
                     if (operation === 'add') {
                         return [...prev, {
                             type: type === 'full' ? 'FULL' : 'SMALL (2/3)',
-                            capacity: type === 'full' ? FULL_CAPACITY : SMALL_CAPACITY
+                            weightCap: type === 'full' ? FULL_MIXER_WEIGHT : SMALL_MIXER_WEIGHT
                         }];
                     } else {
-                        const idx = [...prev].reverse().findIndex(m => (type === 'full' ? m.capacity === FULL_CAPACITY : m.capacity === SMALL_CAPACITY));
+                        const targetWeight = type === 'full' ? FULL_MIXER_WEIGHT : SMALL_MIXER_WEIGHT;
+                        const idx = [...prev].reverse().findIndex(m => m.weightCap === targetWeight);
                         if (idx === -1) return prev;
                         const newArr = [...prev];
                         newArr.splice(prev.length - 1 - idx, 1);
@@ -215,7 +221,11 @@
             };
 
             const totalOrder = (Number(bapsOrder) || 0) + (Number(rollsOrder) || 0);
-            const totalProduction = mixers.reduce((sum, m) => sum + m.capacity, 0);
+            const totalProduction = mixers.reduce((sum, m) => {
+                const bapsRatio = totalOrder > 0 ? (Number(bapsOrder) || 0) / totalOrder : 0.5;
+                const avgWeight = (bapsRatio * BAPS_WEIGHT) + ((1 - bapsRatio) * ROLLS_WEIGHT);
+                return sum + Math.floor(m.weightCap / avgWeight);
+            }, 0);
             const buffer = totalProduction - totalOrder;
 
             const bapsBuffer = Math.floor(buffer / 2);
@@ -241,14 +251,28 @@
                 mixers.forEach((m) => {
                     let bapsInMixer = 0;
                     let rollsInMixer = 0;
-                    const cap = m.capacity;
+                    let remainingWeight = m.weightCap;
 
-                    if (bapsRemaining >= cap) {
-                        bapsInMixer = cap;
-                        bapsRemaining -= cap;
-                    } else if (bapsRemaining > 0) {
-                        bapsInMixer = bapsRemaining;
-                        rollsInMixer = cap - bapsRemaining;
+                    if (bapsRemaining > 0) {
+                        const bapsPossible = Math.floor(remainingWeight / BAPS_WEIGHT);
+                        if (bapsRemaining >= bapsPossible) {
+                            bapsInMixer = bapsPossible;
+                            remainingWeight -= (bapsInMixer * BAPS_WEIGHT);
+                            bapsRemaining -= bapsInMixer;
+                        } else {
+                            bapsInMixer = bapsRemaining;
+                            remainingWeight -= (bapsInMixer * BAPS_WEIGHT);
+                            bapsRemaining = 0;
+                        }
+                    }
+
+                    if (remainingWeight >= ROLLS_WEIGHT) {
+                        const rollsPossible = Math.floor(remainingWeight / ROLLS_WEIGHT);
+                        rollsInMixer = rollsPossible;
+                        remainingWeight -= (rollsInMixer * ROLLS_WEIGHT);
+                    }
+
+                    if (bapsInMixer > 0 && rollsInMixer > 0) {
                         splitInfo = {
                             mixerNum: schedule.length + 1,
                             bapsAmount: bapsInMixer,
@@ -256,16 +280,14 @@
                             rollsAmount: rollsInMixer,
                             remainingWeight: (rollsInMixer * ROLLS_WEIGHT).toFixed(2)
                         };
-                        bapsRemaining = 0;
-                    } else {
-                        rollsInMixer = cap;
                     }
 
                     schedule.push({
                         type: m.type,
-                        capacity: cap,
+                        capacity: bapsInMixer + rollsInMixer,
                         baps: bapsInMixer,
-                        rolls: rollsInMixer
+                        rolls: rollsInMixer,
+                        weightCap: m.weightCap
                     });
                 });
 
@@ -301,21 +323,13 @@
 
             const handleOverride = (type, idx, newValue, isLast, currentValue) => {
                 if (newValue < 1) return;
-
                 const diff = newValue - currentValue;
-
                 if (isLast) {
-                    if (type === 'baps') {
-                        setBapsTotalOffset(prev => prev + diff);
-                    } else {
-                        setRollsTotalOffset(prev => prev + diff);
-                    }
+                    if (type === 'baps') setBapsTotalOffset(prev => prev + diff);
+                    else setRollsTotalOffset(prev => prev + diff);
                 } else {
-                    if (type === 'baps') {
-                        setBapsOverrides(prev => ({ ...prev, [idx]: newValue }));
-                    } else {
-                        setRollsOverrides(prev => ({ ...prev, [idx]: newValue }));
-                    }
+                    if (type === 'baps') setBapsOverrides(prev => ({ ...prev, [idx]: newValue }));
+                    else setRollsOverrides(prev => ({ ...prev, [idx]: newValue }));
                 }
             };
 
@@ -323,17 +337,9 @@
                 let remaining = effectiveTotal;
                 let result = [];
                 let i = 0;
-
                 while (remaining > 0 || overrides[i] !== undefined) {
-                    let cap;
-                    if (overrides[i] !== undefined) {
-                        cap = overrides[i];
-                    } else {
-                        cap = remaining > defaultCap ? defaultCap : remaining;
-                    }
-
+                    let cap = overrides[i] !== undefined ? overrides[i] : Math.min(remaining, defaultCap);
                     if (cap < 1 && remaining > 0) cap = 1;
-
                     if (cap > 0) {
                         result.push(cap);
                         remaining -= cap;
@@ -362,38 +368,24 @@
 
             const renderTrolleys = (distribution, checkedState, toggleType) => {
                 if (distribution.length === 0) return null;
-
                 return (
                     <div className="flex flex-wrap gap-2 mt-1">
                         {distribution.map((trays, idx) => {
                             const isChecked = checkedState[idx] || false;
                             const isLast = idx === distribution.length - 1;
-
                             return (
                                 <div key={idx} className={`flex items-center rounded-xl border-2 transition-all duration-200 ${isChecked ? 'border-green-400 bg-green-50 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-300'}`}>
-
                                     {isChecked && (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays - 1, isLast, trays); }}
-                                            className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-l-lg border-r border-green-200"
-                                        >
+                                        <button onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays - 1, isLast, trays); }} className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-l-lg border-r border-green-200">
                                             <Minus className="w-4 h-4" />
                                         </button>
                                     )}
-
-                                    <button
-                                        onClick={() => toggleTrolley(toggleType, idx)}
-                                        className={`flex flex-col items-center justify-center h-12 transition-all ${!isChecked ? 'w-14 rounded-xl' : 'w-10'}`}
-                                    >
+                                    <button onClick={() => toggleTrolley(toggleType, idx)} className={`flex flex-col items-center justify-center h-12 transition-all ${!isChecked ? 'w-14 rounded-xl' : 'w-10'}`}>
                                         <span className={`text-[12px] font-bold ${isChecked ? 'text-green-800' : 'text-gray-500'}`}>{trays}tr</span>
                                         {isChecked ? <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" /> : <Circle className="w-4 h-4 text-gray-300 mt-0.5" />}
                                     </button>
-
                                     {isChecked && (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays + 1, isLast, trays); }}
-                                            className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-r-lg border-l border-green-200"
-                                        >
+                                        <button onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays + 1, isLast, trays); }} className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-r-lg border-l border-green-200">
                                             <Plus className="w-4 h-4" />
                                         </button>
                                     )}
@@ -407,7 +399,6 @@
             return (
                 <div className="min-h-screen bg-gray-100 flex justify-center font-sans text-gray-800">
                     <div className="w-full max-w-md bg-white shadow-xl min-h-screen relative overflow-y-auto pb-20">
-
                         <div className="bg-blue-600 text-white p-5 rounded-b-3xl shadow-md sticky top-0 z-10">
                             <h1 className="text-xl font-bold flex items-center gap-2">
                                 <Settings className="w-6 h-6" />
@@ -415,9 +406,7 @@
                             </h1>
                             <p className="text-blue-100 text-sm mt-1">Calculating Baps & Rolls</p>
                         </div>
-
                         <div className="p-5 space-y-6">
-
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
                                 <h2 className="font-semibold text-gray-700 flex items-center gap-2">
                                     <ShoppingCart className="w-5 h-5 text-blue-500" />
@@ -426,66 +415,96 @@
                                 <div className="flex gap-4">
                                     <div className="flex-1">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Baps</label>
-                                        <input
-                                            type="number"
-                                            value={bapsOrder}
-                                            onChange={(e) => setBapsOrder(e.target.value)}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                            placeholder="0"
-                                        />
+                                        <input type="number" value={bapsOrder} onChange={(e) => setBapsOrder(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" />
                                     </div>
                                     <div className="flex-1">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Rolls</label>
-                                        <input
-                                            type="number"
-                                            value={rollsOrder}
-                                            onChange={(e) => setRollsOrder(e.target.value)}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                            placeholder="0"
-                                        />
+                                        <input type="number" value={rollsOrder} onChange={(e) => setRollsOrder(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" />
                                     </div>
                                 </div>
                             </div>
-
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
                                 <div className="flex justify-between items-center">
                                     <h2 className="font-semibold text-gray-700">Mixers</h2>
-                                    <button
-                                        onClick={() => setAutoMode(true)}
-                                        className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${autoMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}
-                                    >
+                                    <button onClick={() => setAutoMode(true)} className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${autoMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
                                         {autoMode ? 'Auto ON' : 'Auto OFF'}
                                     </button>
                                 </div>
-
                                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
                                     <div>
                                         <p className="font-medium">Full mixers</p>
-                                        <p className="text-xs text-gray-400">975 pcs</p>
+                                        <p className="text-xs text-gray-400">84kg</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleManualChange('full', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
-                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.capacity === FULL_CAPACITY).length}</span>
+                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.weightCap === FULL_MIXER_WEIGHT).length}</span>
                                         <button onClick={() => handleManualChange('full', 'add')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Plus className="w-4 h-4" /></button>
                                     </div>
                                 </div>
-
                                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
                                     <div>
                                         <p className="font-medium">Small mixers</p>
-                                        <p className="text-xs text-gray-400">650 pcs</p>
+                                        <p className="text-xs text-gray-400">56kg</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleManualChange('small', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
-                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.capacity === SMALL_CAPACITY).length}</span>
+                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.weightCap === SMALL_MIXER_WEIGHT).length}</span>
                                         <button onClick={() => handleManualChange('small', 'add')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Plus className="w-4 h-4" /></button>
                                     </div>
                                 </div>
                             </div>
 
+                            <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
+                                <button
+                                    onClick={() => setShowRecipe(!showRecipe)}
+                                    className="w-full flex items-center justify-between text-blue-700 font-bold"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <ClipboardList className="w-5 h-5" />
+                                        <span>Recipe Assistant</span>
+                                    </div>
+                                    <Icon name={showRecipe ? 'chevron-up' : 'chevron-down'} className="w-5 h-5" />
+                                </button>
+
+                                {showRecipe && (
+                                    <div className="mt-4 space-y-4 animate-fade-in-up">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Full (84kg)</p>
+                                                <ul className="mt-2 space-y-1 text-[11px] text-gray-600 font-medium">
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Flour</span> <span className="font-bold text-blue-700">48.00 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Water</span> <span className="font-bold text-blue-700">28.50 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Sugar</span> <span>1.050 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Oil</span> <span>1.050 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Vinegar</span> <span>0.960 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Salt</span> <span>0.900 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Improv.</span> <span>0.900 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Gluten</span> <span>0.480 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Psyllium</span> <span>0.450 kg</span></li>
+                                                    <li className="flex justify-between text-[10px] opacity-70"><span>Others</span> <span>1.710 kg</span></li>
+                                                </ul>
+                                            </div>
+                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Small (56kg)</p>
+                                                <ul className="mt-2 space-y-1 text-[11px] text-gray-600 font-medium">
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Flour</span> <span className="font-bold text-blue-700">32.00 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Water</span> <span className="font-bold text-blue-700">19.00 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Sugar</span> <span>0.700 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Oil</span> <span>0.700 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Vinegar</span> <span>0.640 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Salt</span> <span>0.600 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Improv.</span> <span>0.600 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Gluten</span> <span>0.320 kg</span></li>
+                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Psyllium</span> <span>0.300 kg</span></li>
+                                                    <li className="flex justify-between text-[10px] opacity-70"><span>Others</span> <span>1.140 kg</span></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             {totalOrder > 0 && totalProduction > 0 && (
                                 <div className="space-y-6 animate-fade-in-up">
-
                                     <div className={`p-4 rounded-2xl border ${buffer >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                         <div className="flex items-center gap-2 mb-3">
                                             {buffer >= 0 ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <AlertCircle className="w-5 h-5 text-red-600" />}
