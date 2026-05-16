@@ -1,5 +1,5 @@
-const CACHE_NAME = 'bakery-calc-v2';
-const ASSETS = [
+const CACHE_NAME = 'bakery-calc-v3';
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   'https://unpkg.com/react@18/umd/react.production.min.js',
@@ -9,39 +9,45 @@ const ASSETS = [
   'https://unpkg.com/lucide@latest'
 ];
 
-// Instalacja - cachowanie zasobów
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Wymuś natychmiastową aktywację
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Cachowanie zasobów (v2)...');
-      return cache.addAll(ASSETS);
+      // Używamy map, aby błąd w jednym pliku nie psuł reszty
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => cache.add(url))
+      );
     })
   );
 });
 
-// Aktywacja - czyszczenie starych wersji cache
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
       );
-    }).then(() => self.clients.claim()) // Natychmiastowe przejęcie kontroli
+    }).then(() => self.clients.claim())
   );
 });
 
-// Przechwytywanie zapytań (Tryb Offline)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        // Opcjonalnie: można tu dopisać automatyczne cachowanie nowych rzeczy
-        return response;
-      });
+      // Zawsze próbuj pobrać nową wersję z sieci w tle (Network First dla HTML)
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      }).catch(() => cachedResponse); // Jeśli błąd sieci, daj z cache
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
