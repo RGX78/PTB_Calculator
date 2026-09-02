@@ -1,705 +1,610 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bakery Calculator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🥖 Kalkulator Produkcji Bułek</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Kalkulator Bułek","short_name":"Bułki","display":"standalone","background_color":"%23f3f4f6","theme_color":"%232563eb","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%A5%96%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kalkulator Bułek">
+<style>
+  :root{
+    --blue:#2563eb; --blue2:#1e40af; --blue-l:#eff6ff;
+    --bg:#f3f4f6; --card:#fff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --purple:#7c3aed; --indigo:#4f46e5;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; padding-bottom:env(safe-area-inset-bottom);}
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+  input[type=number]{-moz-appearance:textfield;}
+  .wrap{max-width:480px;margin:0 auto;padding-bottom:40px;}
 
-    <!-- Manifest PWA w locie (wymagany do pełnego działania aplikacji na telefonie) -->
-    <link rel="manifest"
-        href="data:application/manifest+json;base64,eyJuYW1lIjoiQmFrZXJ5IENhbGN1bGF0b3IiLCJzaG9ydF9uYW1lIjoiQmFrZXJ5IENhbGMiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmM2Y0ZjYiLCJ0aGVtZV9jb2xvciI6IiMyNTYzZWIifQ==">
+  header{background:var(--blue); color:#fff; padding:20px 16px 18px; border-radius:0 0 24px 24px;}
+  header h1{font-size:20px;margin:0;font-weight:700;}
+  header p{margin:4px 0 0;font-size:13px;opacity:.85;}
 
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bakery Calc">
+  .content{padding:16px 12px;display:flex;flex-direction:column;gap:14px;}
 
-    <!-- Skrypty do obsługi Reacta w przeglądarce -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .card h2{font-size:14px;font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:8px;color:#374151;}
+  .card h2 .ic{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;font-size:12px;}
 
-    <!-- Tailwind CSS (Do stylizacji) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  .lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+  .inp{width:100%;border:1px solid var(--line);background:#f9fafb;border-radius:12px;padding:12px;font-size:20px;font-weight:700;text-align:center;outline:none;}
+  .inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.15);background:#fff;}
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
-    <style>
-        /* Proste style i animacje */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f3f4f6;
-            font-family: sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;}
+  .tag.baps{background:#ffedd5;color:#9a3412;}
+  .tag.rolls{background:#e0e7ff;color:#3730a3;}
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
+  /* mixery */
+  .mixrow{display:flex;align-items:center;justify-content:space-between;background:#f9fafb;padding:10px 12px;border-radius:12px;margin-bottom:8px;}
+  .mixrow .info .t{font-weight:600;font-size:14px;}
+  .mixrow .info .s{font-size:10px;color:var(--muted);}
+  .stepper{display:flex;align-items:center;gap:8px;}
+  .stepper button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:18px;font-weight:700;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .stepper button:active{background:#f3f4f6;}
+  .stepper .n{min-width:24px;text-align:center;font-weight:700;font-size:16px;}
 
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+  /* schedule */
+  .schrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .schrow:last-child{border-bottom:none;}
+  .cir{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+  .cir.full{background:#dbeafe;color:#1d4ed8;}
+  .cir.small{background:#ede9fe;color:#6d28d9;}
+  .cir.split{background:#fee2e2;color:#b91c1c;}
+  .schrow .body{flex:1;min-width:0;}
+  .schrow .t{font-weight:600;font-size:13px;}
+  .schrow .chips{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
+  .splitbox{background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px;margin-top:8px;}
+  .splitbox .t{font-weight:700;color:#b91c1c;font-size:13px;margin-bottom:8px;}
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+  /* trolley */
+  .trolley{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .trol{display:flex;align-items:center;gap:0;border:2px solid var(--line);background:#fff;border-radius:12px;transition:.15s;overflow:hidden;}
+  .trol-body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 7px;cursor:pointer;min-width:52px;}
+  .trol .n{font-size:13px;font-weight:700;color:var(--muted);}
+  .trol .u{font-size:9px;color:var(--muted);}
+  .trol.on{border-color:var(--green);background:#f0fdf4;}
+  .trol.on .n,.trol.on .u{color:#15803d;}
+  .trol .chk{font-size:16px;line-height:1;}
+  .tc-btn{width:26px;height:44px;border:none;background:#f3f4f6;color:#374151;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .tc-btn:active{background:#e5e7eb;}
+  .arrows{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-left:auto;}
+  .arw{width:26px;height:26px;border:1px solid var(--line);background:#fff;border-radius:6px;color:#374151;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+  .arw:disabled{opacity:.3;cursor:default;}
 
-        @keyframes pulse {
+  .stat{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .stat .box{flex:1;min-width:70px;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;}
+  .stat .box .k{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+  .stat .box .v{font-size:16px;font-weight:800;margin-top:2px;}
 
-            0%,
-            100% {
-                opacity: 1;
-            }
+  /* wynik / porównanie */
+  .final{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border-radius:16px;padding:16px;border:none;}
+  .final h2{color:#fff;margin:0 0 12px;font-size:15px;}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .cmp .cell{background:rgba(255,255,255,.12);border-radius:10px;padding:10px;text-align:center;}
+  .cmp .cell .k{font-size:10px;opacity:.85;font-weight:600;text-transform:uppercase;}
+  .cmp .cell .v{font-size:20px;font-weight:800;margin-top:2px;}
+  .cmp .cell.diff{background:rgba(255,255,255,.2);}
+  .pos{color:#86efac;} .neg{color:#fca5a5;}
 
-            50% {
-                opacity: .5;
-            }
-        }
+  .btn{width:100%;padding:12px;border:none;border-radius:12px;background:#e5e7eb;color:#374151;font-weight:700;font-size:14px;cursor:pointer;}
+  .btn:active{transform:scale(.98);}
 
-        /* Ukrywanie strzałek w polach number */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+  .recipe-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .recipe-item:last-child{border-bottom:none;}
+  .recipe-item .v{font-weight:700;color:var(--blue2);}
 
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-    </style>
+  .hidden{display:none !important;}
+  .muted{color:var(--muted);}
+</style>
 </head>
-
 <body>
-    <div id="root"></div>
+<div class="wrap">
+  <header>
+    <h1>🥖 Kalkulator produkcji bułek</h1>
+    <p>Baps (90 g) · Rolls (95 g) · mixer 92 kg</p>
+  </header>
 
-    <script>
-        // REJESTRACJA SERVICE WORKERA (Tarcza zapewniająca działanie Offline)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Tryb Offline Aktywny i zainstalowany!'))
-                    .catch(err => console.log('Błąd trybu offline', err));
-            });
-        }
-    </script>
+  <div class="content">
+    <!-- ZAMÓWIENIE -->
+    <div class="card">
+      <h2><span class="ic" style="background:#dbeafe">🛒</span> Zamówienie</h2>
+      <div class="two">
+        <div>
+          <div class="lbl" style="margin-bottom:6px">🍔 Baps</div>
+          <input class="inp" type="number" id="bapsOrder" inputmode="numeric" min="0" placeholder="0" oninput="onOrder()">
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:6px">🥐 Rolls</div>
+          <input class="inp" type="number" id="rollsOrder" inputmode="numeric" min="0" placeholder="0" oninput="onOrder()">
+        </div>
+      </div>
+    </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <!-- MIXERY -->
+    <div class="card">
+      <h2><span class="ic" style="background:#ede9fe">🥣</span> Mixery
+        <span id="autoTag" style="margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:#dbeafe;color:#1d4ed8;cursor:pointer" onclick="toggleAuto()">Auto ON</span>
+      </h2>
+      <div class="two" style="margin-bottom:12px">
+        <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px;text-align:center">
+          <div class="lbl">🎯 Target Baps</div>
+          <div style="font-size:22px;font-weight:800;color:var(--blue)" id="targetBaps">0</div>
+        </div>
+        <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px;text-align:center">
+          <div class="lbl">🎯 Target Rolls</div>
+          <div style="font-size:22px;font-weight:800;color:var(--blue)" id="targetRolls">0</div>
+        </div>
+      </div>
+      <div id="bufferInfo" style="text-align:center;font-size:14px;font-weight:700;padding:10px;border-radius:10px;margin-bottom:12px"></div>
+      <div class="mixrow">
+        <div class="info">
+          <div class="t">Pełny mixer</div>
+          <div class="s">92 kg · Baps 1022 / Rolls 968</div>
+        </div>
+        <div class="stepper">
+          <button onclick="manualMix('full',-1)">−</button>
+          <span class="n" id="fullCount">0</span>
+          <button onclick="manualMix('full',1)">+</button>
+        </div>
+      </div>
+      <div class="mixrow">
+        <div class="info">
+          <div class="t">Mały mixer (2/3)</div>
+          <div class="s">61.3 kg · Baps 681 / Rolls 645</div>
+        </div>
+        <div class="stepper">
+          <button onclick="manualMix('small',-1)">−</button>
+          <span class="n" id="smallCount">0</span>
+          <button onclick="manualMix('small',1)">+</button>
+        </div>
+      </div>
+    </div>
 
-        // Bezpieczne renderowanie ikon Lucide w React bez konfliktów z DOM
-        const Icon = ({ name, className }) => {
-            const ref = React.useRef(null);
-            React.useEffect(() => {
-                if (ref.current && window.lucide) {
-                    ref.current.innerHTML = `<i data-lucide="${name}" class="${className || ''}"></i>`;
-                    window.lucide.createIcons({ root: ref.current });
-                }
-            }, [name, className]);
-            return <span ref={ref} className="inline-flex items-center justify-center" />;
-        };
+    <!-- PLAN PRODUKCJI -->
+    <div class="card hidden" id="scheduleCard">
+      <h2><span class="ic" style="background:#fee2e2">📋</span> Plan produkcji</h2>
+      <div id="schedule"></div>
+      <div id="splitBox"></div>
+    </div>
 
-        const Settings = (props) => <Icon name="settings" {...props} />;
-        const Plus = (props) => <Icon name="plus" {...props} />;
-        const Minus = (props) => <Icon name="minus" {...props} />;
-        const CheckCircle2 = (props) => <Icon name="check-circle-2" {...props} />;
-        const AlertCircle = (props) => <Icon name="alert-circle" {...props} />;
-        const ShoppingCart = (props) => <Icon name="shopping-cart" {...props} />;
-        const List = (props) => <Icon name="list" {...props} />;
-        const Scale = (props) => <Icon name="scale" {...props} />;
-        const Package = (props) => <Icon name="package" {...props} />;
-        const Circle = (props) => <Icon name="circle" {...props} />;
-        const ChevronUp = (props) => <Icon name="chevron-up" {...props} />;
-        const ChevronDown = (props) => <Icon name="chevron-down" {...props} />;
-        const ClipboardList = (props) => <Icon name="clipboard-list" {...props} />;
+    <!-- WÓZKI / TACE -->
+    <div class="card hidden" id="trolleyCard">
+      <h2><span class="ic" style="background:#dcfce7">📦</span> Wózki i tace <span class="muted" style="font-size:11px;font-weight:400;margin-left:auto">1 taca = 24 bułek · wózek = 15 tac</span></h2>
 
-        const App = () => {
-            const [bapsOrder, setBapsOrder] = useState('');
-            const [rollsOrder, setRollsOrder] = useState('');
-            const [mixers, setMixers] = useState([]); // [{type: 'FULL', weightCap: 84.0}, ...]
-            const [autoMode, setAutoMode] = useState(true);
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span class="tag baps">🍔 Baps</span>
+          <span class="muted" style="font-size:11px">cel: <b id="bapsTrays">0</b> tac</span>
+        </div>
+        <div class="trolley" id="bapsTrolleys"></div>
+        <div class="stat">
+          <div class="box"><div class="k">Zamówienie</div><div class="v" id="bapsOrderStat">0</div></div>
+          <div class="box"><div class="k">Cel</div><div class="v" id="bapsTargetStat">0</div></div>
+          <div class="box" style="border-color:#bbf7d0;background:#f0fdf4"><div class="k" style="color:#15803d">Zrobione</div><div class="v" id="bapsDoneStat" style="color:#15803d">0</div></div>
+        </div>
+      </div>
 
-            const [checkedBapsTrolleys, setCheckedBapsTrolleys] = useState([]);
-            const [checkedRollsTrolleys, setCheckedRollsTrolleys] = useState([]);
-            const trolleyCap = 15;
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span class="tag rolls">🥐 Rolls</span>
+          <span class="muted" style="font-size:11px">cel: <b id="rollsTrays">0</b> tac</span>
+        </div>
+        <div class="trolley" id="rollsTrolleys"></div>
+        <div class="stat">
+          <div class="box"><div class="k">Zamówienie</div><div class="v" id="rollsOrderStat">0</div></div>
+          <div class="box"><div class="k">Cel</div><div class="v" id="rollsTargetStat">0</div></div>
+          <div class="box" style="border-color:#bbf7d0;background:#f0fdf4"><div class="k" style="color:#15803d">Zrobione</div><div class="v" id="rollsDoneStat" style="color:#15803d">0</div></div>
+        </div>
+      </div>
+    </div>
 
-            const [bapsOverrides, setBapsOverrides] = useState({});
-            const [rollsOverrides, setRollsOverrides] = useState({});
+    <!-- PRZEPIS -->
+    <div class="card" id="recipeCard">
+      <h2 onclick="toggleRecipe()" style="cursor:pointer">
+        <span class="ic" style="background:#fef3c7">🧾</span> Przepis
+        <span class="muted" style="font-size:11px;font-weight:400">na pełny mixer (92 kg)</span>
+        <span id="recipeArrow" style="margin-left:auto">▾</span>
+      </h2>
+      <div id="recipe" class="hidden"></div>
+    </div>
 
-            const [bapsTotalOffset, setBapsTotalOffset] = useState(0);
-            const [rollsTotalOffset, setRollsTotalOffset] = useState(0);
-            const [showRecipe, setShowRecipe] = useState(false);
+    <!-- WYNIK / PORÓWNANIE -->
+    <div class="final hidden" id="finalCard">
+      <h2>📊 Wynik — zamówienie vs zrobione</h2>
+      <div class="cmp">
+        <div class="cell"><div class="k">🍔 Baps zamówione</div><div class="v" id="fbapsOrder">0</div></div>
+        <div class="cell"><div class="k">🍔 Baps zrobione</div><div class="v" id="fbapsDone">0</div></div>
+        <div class="cell"><div class="k">🥐 Rolls zamówione</div><div class="v" id="frollsOrder">0</div></div>
+        <div class="cell"><div class="k">🥐 Rolls zrobione</div><div class="v" id="frollsDone">0</div></div>
+      </div>
+      <div class="cmp" style="margin-top:8px">
+        <div class="cell diff"><div class="k">Różnica Baps</div><div class="v" id="fbapsDiff">0</div></div>
+        <div class="cell diff"><div class="k">Różnica Rolls</div><div class="v" id="frollsDiff">0</div></div>
+      </div>
+    </div>
 
-            const FULL_MIXER_WEIGHT = 88.0;
-            const SMALL_MIXER_WEIGHT = 58.67;
-            const MAX_BUFFER_PCS = 150;
-            const BAPS_WEIGHT = 0.090;
-            const ROLLS_WEIGHT = 0.095;
+    <button class="btn" onclick="resetAll()">↺ Wyczyść wszystko</button>
+  </div>
+</div>
 
-            useEffect(() => {
-                if (!autoMode) return;
+<script>
+// ================= KONFIGURACJA =================
+const BAPS_WEIGHT = 0.090;   // kg
+const ROLLS_WEIGHT = 0.095;  // kg
+const FULL_KG = 92.0;        // masa ciasta pełnego mixera
+const SMALL_KG = FULL_KG * 2/3; // 61.33
+const TRAY_PCS = 24;         // bułek na tacę
+const TROLLEY_CAP = 15;      // tac na wózek
+const MAX_BUFFER = 150;      // max nadwyżka (szt)
 
-                const total = (Number(bapsOrder) || 0) + (Number(rollsOrder) || 0);
-                if (total === 0) {
-                    setMixers([]);
-                    return;
-                }
+// Przepis na PEŁNY mixer (92 kg). Olej i woda w litrach (l), reszta kg.
+const RECIPE = [
+  { name:"Mąka",       en:"Flour",      unit:"kg", per:48.0 },
+  { name:"Woda",       en:"Water",      unit:"l",  per:28.5 },
+  { name:"Drożdże",    en:"Yeast",      unit:"kg", per:3.8  },
+  { name:"Ocet",       en:"Vinegar",    unit:"kg", per:0.9  },
+  { name:"Olej",       en:"Oil",        unit:"l",  per:1.0  },
+  { name:"Mąka mix",   en:"Flour mix",  unit:"kg", per:4.6  },
+  { name:"Zakwas",     en:"Sour dough", unit:"kg", per:5.2  },
+];
 
-                let bestConfig = { full: 0, small: 0, buffer: Infinity };
-                let fallbackConfig = { full: 0, small: 0, buffer: Infinity };
-                let minAbs = Infinity;
+// ================= STAN =================
+let bapsOrder = 0, rollsOrder = 0;
+let mixers = [];            // tablica: 'full' | 'small'
+let autoMode = true;
+let checkedBaps = [];       // tablica bool per wózek
+let checkedRolls = [];
+let bapsOverrides = {};     // {idx: liczba tac} — ręczna zmiana tac na wózku
+let rollsOverrides = {};
+let showRecipe = false;     // przepis zwinięty/rozwinięty
 
-                const bW = Number(bapsOrder) || 0;
-                const rW = Number(rollsOrder) || 0;
-                const totalW = bW + rW;
-                const currentAvgW = totalW > 0 ? (bW * BAPS_WEIGHT + rW * ROLLS_WEIGHT) / totalW : BAPS_WEIGHT;
+// ================= POMOCNICZE =================
+function num(id){ const v = parseFloat(document.getElementById(id).value); return (isNaN(v)||v<0)?0:v; }
+function fmt(n, dec){
+  if(dec===undefined) dec = (n>=10 ? 1 : 2);
+  const v = Math.round(n*Math.pow(10,dec))/Math.pow(10,dec);
+  return parseFloat(v.toFixed(dec)).toString();
+}
+function calcTrays(amount){
+  const full = Math.floor(amount/TRAY_PCS);
+  const rem = amount % TRAY_PCS;
+  return { full, rem, total: full + (rem>0?1:0) };
+}
+// podział tac na wózki (każdy po TROLLEY_CAP, ostatni może mniej); overrides = ręczne zmiany
+function trolleyDist(traysTotal, overrides){
+  if(traysTotal<=0 && Object.keys(overrides).length===0) return [];
+  const arr=[]; let rem=traysTotal; let i=0;
+  while(rem>0 || overrides[i]!==undefined){
+    let cap = overrides[i]!==undefined ? overrides[i] : Math.min(rem, TROLLEY_CAP);
+    if(cap<1 && rem>0) cap=1;
+    if(cap>0){ arr.push(cap); rem-=cap; }
+    i++;
+    if(i>150) break;
+  }
+  return arr;
+}
 
-                for (let f = 0; f <= 15; f++) {
-                    for (let s = 0; s <= 3; s++) {
-                        const fullCapPcs = Math.floor(FULL_MIXER_WEIGHT / currentAvgW);
-                        const smallCapPcs = Math.floor(SMALL_MIXER_WEIGHT / currentAvgW);
+// ================= AUTO DOBÓR MIXERÓW =================
+function autoMixers(){
+  const total = bapsOrder + rollsOrder;
+  if(total===0){ mixers=[]; return; }
+  const bW=bapsOrder, rW=rollsOrder;
+  const avgW = (bW*BAPS_WEIGHT + rW*ROLLS_WEIGHT)/total;
+  const fullCap = Math.floor(FULL_KG/avgW);
+  const smallCap = Math.floor(SMALL_KG/avgW);
 
-                        const prod = f * fullCapPcs + s * smallCapPcs;
-                        const buffer = prod - total;
+  let best={full:0,small:0,buffer:Infinity};
+  let fallback={full:0,small:0,buffer:Infinity}; let minAbs=Infinity;
+  for(let f=0; f<=15; f++){
+    for(let s=0; s<=6; s++){
+      const prod = f*fullCap + s*smallCap;
+      const buffer = prod - total;
+      if(buffer>=0 && buffer<=MAX_BUFFER && buffer<best.buffer) best={full:f,small:s,buffer};
+      if(prod>0 && Math.abs(buffer)<minAbs){ minAbs=Math.abs(buffer); fallback={full:f,small:s,buffer}; }
+    }
+  }
+  const cfg = best.buffer!==Infinity ? best : fallback;
+  mixers=[];
+  for(let i=0;i<cfg.full;i++) mixers.push('full');
+  for(let i=0;i<cfg.small;i++) mixers.push('small');
+}
 
-                        if (buffer >= 0 && buffer <= MAX_BUFFER_PCS && buffer < bestConfig.buffer) {
-                            bestConfig = { full: f, small: s, buffer: buffer };
-                        }
+// ================= OBLICZENIA POCHODNE =================
+function computed(){
+  const totalOrder = bapsOrder + rollsOrder;
+  const bapsRatio = totalOrder>0 ? bapsOrder/totalOrder : 0.5;
+  const avgW = bapsRatio*BAPS_WEIGHT + (1-bapsRatio)*ROLLS_WEIGHT;
+  const totalProduction = mixers.reduce((s,m)=> s + Math.floor((m==='full'?FULL_KG:SMALL_KG)/avgW), 0);
+  const buffer = totalProduction - totalOrder;
 
-                        if (Math.abs(buffer) < minAbs) {
-                            minAbs = Math.abs(buffer);
-                            fallbackConfig = { full: f, small: s, buffer: buffer };
-                        }
-                    }
-                }
+  const bapsBuffer = Math.floor(buffer/2);
+  const rollsBuffer = Math.ceil(buffer/2);
+  const bapsTarget = bapsOrder + bapsBuffer;
+  const rollsTarget = rollsOrder + rollsBuffer;
 
-                const newMixers = [];
-                if (bestConfig.buffer !== Infinity) {
-                    for (let i = 0; i < bestConfig.full; i++) newMixers.push({ type: 'FULL', weightCap: FULL_MIXER_WEIGHT });
-                    for (let i = 0; i < bestConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', weightCap: SMALL_MIXER_WEIGHT });
-                } else {
-                    for (let i = 0; i < fallbackConfig.full; i++) newMixers.push({ type: 'FULL', weightCap: FULL_MIXER_WEIGHT });
-                    for (let i = 0; i < fallbackConfig.small; i++) newMixers.push({ type: 'SMALL (2/3)', weightCap: SMALL_MIXER_WEIGHT });
-                }
-                setMixers(newMixers);
-            }, [bapsOrder, rollsOrder, autoMode]);
+  // schedule
+  const schedule=[]; let bapsRem=bapsTarget;
+  mixers.forEach(m=>{
+    let bapsIn=0, rollsIn=0; let w = m==='full'?FULL_KG:SMALL_KG;
+    if(bapsRem>0){
+      const possible = Math.floor(w/BAPS_WEIGHT);
+      if(bapsRem>=possible){ bapsIn=possible; w-=bapsIn*BAPS_WEIGHT; bapsRem-=bapsIn; }
+      else { bapsIn=bapsRem; w-=bapsIn*BAPS_WEIGHT; bapsRem=0; }
+    }
+    if(w>=ROLLS_WEIGHT){ rollsIn=Math.floor(w/ROLLS_WEIGHT); w-=rollsIn*ROLLS_WEIGHT; }
+    schedule.push({type:m, baps:bapsIn, rolls:rollsIn, weightCap:m==='full'?FULL_KG:SMALL_KG});
+  });
 
-            const handleManualChange = (type, operation) => {
-                setAutoMode(false);
-                setMixers(prev => {
-                    if (operation === 'add') {
-                        return [...prev, {
-                            type: type === 'full' ? 'FULL' : 'SMALL (2/3)',
-                            weightCap: type === 'full' ? FULL_MIXER_WEIGHT : SMALL_MIXER_WEIGHT
-                        }];
-                    } else {
-                        const targetWeight = type === 'full' ? FULL_MIXER_WEIGHT : SMALL_MIXER_WEIGHT;
-                        const idx = [...prev].reverse().findIndex(m => m.weightCap === targetWeight);
-                        if (idx === -1) return prev;
-                        const newArr = [...prev];
-                        newArr.splice(prev.length - 1 - idx, 1);
-                        return newArr;
-                    }
-                });
-            };
+  // tace
+  const bapsTrays = calcTrays(Math.max(0,bapsTarget));
+  const rollsTrays = calcTrays(Math.max(0,rollsTarget));
 
-            const moveMixer = (index, direction) => {
-                setAutoMode(false);
-                setMixers(prev => {
-                    const newArr = [...prev];
-                    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-                    if (targetIdx < 0 || targetIdx >= newArr.length) return prev;
-                    [newArr[index], newArr[targetIdx]] = [newArr[targetIdx], newArr[index]];
-                    return newArr;
-                });
-            };
+  // wózki
+  const bapsDist = trolleyDist(bapsTrays.total, bapsOverrides);
+  const rollsDist = trolleyDist(rollsTrays.total, rollsOverrides);
 
-            const totalOrder = (Number(bapsOrder) || 0) + (Number(rollsOrder) || 0);
-            const totalProduction = mixers.reduce((sum, m) => {
-                const bapsRatio = totalOrder > 0 ? (Number(bapsOrder) || 0) / totalOrder : 0.5;
-                const avgWeight = (bapsRatio * BAPS_WEIGHT) + ((1 - bapsRatio) * ROLLS_WEIGHT);
-                return sum + Math.floor(m.weightCap / avgWeight);
-            }, 0);
-            const buffer = totalProduction - totalOrder;
+  // zrobione (z zaznaczonych wózków)
+  const bapsDoneTrays = bapsDist.reduce((s,c,i)=> s + (checkedBaps[i]?c:0), 0);
+  const rollsDoneTrays = rollsDist.reduce((s,c,i)=> s + (checkedRolls[i]?c:0), 0);
+  // sztuki: pełne tace × 24; ostatnia może być niepełna (przybliżenie)
+  const bapsDone = bapsDoneTrays * TRAY_PCS;
+  const rollsDone = rollsDoneTrays * TRAY_PCS;
 
-            const bapsBuffer = Math.floor(buffer / 2);
-            const rollsBuffer = Math.ceil(buffer / 2);
+  return { totalOrder, buffer, bapsBuffer, rollsBuffer, bapsTarget, rollsTarget, schedule, bapsTrays, rollsTrays,
+           bapsDist, rollsDist, bapsDoneTrays, rollsDoneTrays, bapsDone, rollsDone };
+}
 
-            const bapsTarget = (Number(bapsOrder) || 0) + bapsBuffer;
-            const rollsTarget = (Number(rollsOrder) || 0) + rollsBuffer;
+// ================= RENDER =================
+function render(){
+  const c = computed();
 
-            useEffect(() => {
-                setCheckedBapsTrolleys([]);
-                setCheckedRollsTrolleys([]);
-                setBapsOverrides({});
-                setRollsOverrides({});
-                setBapsTotalOffset(0);
-                setRollsTotalOffset(0);
-            }, [bapsTarget, rollsTarget]);
+  // mixery
+  document.getElementById('fullCount').textContent = mixers.filter(m=>m==='full').length;
+  document.getElementById('smallCount').textContent = mixers.filter(m=>m==='small').length;
+  document.getElementById('autoTag').textContent = autoMode?'Auto ON':'Auto OFF';
+  document.getElementById('autoTag').style.background = autoMode?'#dbeafe':'#e5e7eb';
+  document.getElementById('autoTag').style.color = autoMode?'#1d4ed8':'#6b7280';
 
-            const generateSchedule = () => {
-                let schedule = [];
-                let bapsRemaining = bapsTarget;
-                let splitInfo = null;
+  // target na żywo
+  document.getElementById('targetBaps').textContent = c.bapsTarget;
+  document.getElementById('targetRolls').textContent = c.rollsTarget;
 
-                mixers.forEach((m) => {
-                    let bapsInMixer = 0;
-                    let rollsInMixer = 0;
-                    let remainingWeight = m.weightCap;
+  // surplus / shortage (rozdzielone na baps i rolls)
+  const bi = document.getElementById('bufferInfo');
+  if(c.totalOrder>0){
+    const ok = c.buffer>=0;
+    const cB = c.bapsBuffer>=0 ? '#15803d' : '#b91c1c';
+    const cR = c.rollsBuffer>=0 ? '#15803d' : '#b91c1c';
+    bi.style.background = ok?'#f0fdf4':'#fef2f2';
+    bi.style.border = ok?'1px solid #bbf7d0':'1px solid #fecaca';
+    bi.innerHTML =
+      '<div style="display:flex;justify-content:center;gap:24px">' +
+        '<span style="font-weight:800;color:'+cB+'">🍔 Baps: '+(c.bapsBuffer>0?'+':'')+c.bapsBuffer+'</span>' +
+        '<span style="font-weight:800;color:'+cR+'">🥐 Rolls: '+(c.rollsBuffer>0?'+':'')+c.rollsBuffer+'</span>' +
+      '</div>' +
+      '<div style="margin-top:5px;font-size:11px;font-weight:600;opacity:.85">' +
+        (ok ? '✅ Nadwyżka łącznie: +'+c.buffer+' szt' : '⚠️ Brakuje łącznie: '+Math.abs(c.buffer)+' szt') +
+      '</div>';
+  }else{
+    bi.textContent=''; bi.style.background='transparent'; bi.style.border='none';
+  }
 
-                    if (bapsRemaining > 0) {
-                        const bapsPossible = Math.floor(remainingWeight / BAPS_WEIGHT);
-                        if (bapsRemaining >= bapsPossible) {
-                            bapsInMixer = bapsPossible;
-                            remainingWeight -= (bapsInMixer * BAPS_WEIGHT);
-                            bapsRemaining -= bapsInMixer;
-                        } else {
-                            bapsInMixer = bapsRemaining;
-                            remainingWeight -= (bapsInMixer * BAPS_WEIGHT);
-                            bapsRemaining = 0;
-                        }
-                    }
+  const has = c.totalOrder>0 || mixers.length>0;
 
-                    if (remainingWeight >= ROLLS_WEIGHT) {
-                        const rollsPossible = Math.floor(remainingWeight / ROLLS_WEIGHT);
-                        rollsInMixer = rollsPossible;
-                        remainingWeight -= (rollsInMixer * ROLLS_WEIGHT);
-                    }
+  // plan produkcji
+  const schedCard = document.getElementById('scheduleCard');
+  if(mixers.length>0){
+    schedCard.classList.remove('hidden');
+    let html='';
+    c.schedule.forEach((m,i)=>{
+      const split = m.baps>0 && m.rolls>0;
+      const cls = split?'split':(m.type==='full'?'full':'small');
+      const typeName = m.type==='full'?'Pełny':'Mały (2/3)';
+      html += `<div class="schrow">
+        <div class="cir ${cls}">#${i+1}</div>
+        <div class="body">
+          <div class="t">${typeName} (${m.baps+m.rolls} szt) <span class="muted" style="font-weight:400">· ${fmt(m.weightCap)} kg</span></div>
+          <div class="chips">
+            ${m.baps>0?`<span class="tag baps">Baps: ${m.baps}</span>`:''}
+            ${m.rolls>0?`<span class="tag rolls">Rolls: ${m.rolls}</span>`:''}
+            ${split?`<span style="font-size:11px;font-weight:700;color:#b91c1c">⚠ dzielony!</span>`:''}
+          </div>
+        </div>
+        <div class="arrows">
+          <button class="arw" ${i===0?'disabled':''} onclick="moveMixer(${i},'up')">↑</button>
+          <button class="arw" ${i===c.schedule.length-1?'disabled':''} onclick="moveMixer(${i},'down')">↓</button>
+        </div>
+      </div>`;
+    });
+    document.getElementById('schedule').innerHTML = html;
 
-                    if (bapsInMixer > 0 && rollsInMixer > 0) {
-                        splitInfo = {
-                            mixerNum: schedule.length + 1,
-                            bapsAmount: bapsInMixer,
-                            weight: (bapsInMixer * BAPS_WEIGHT).toFixed(2),
-                            rollsAmount: rollsInMixer,
-                            remainingWeight: (rollsInMixer * ROLLS_WEIGHT).toFixed(2)
-                        };
-                    }
+    // split box
+    const sb = document.getElementById('splitBox'); let sbHtml='';
+    c.schedule.forEach((m,i)=>{
+      if(m.baps>0 && m.rolls>0){
+        sbHtml += `<div class="splitbox">
+          <div class="t">Mixer #${i+1} — podziel ciasto</div>
+          <div class="two" style="gap:8px">
+            <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:8px;text-align:center">
+              <div class="lbl">Na Baps (${m.baps} szt)</div>
+              <div style="font-size:18px;font-weight:800;color:#b91c1c;margin-top:2px">${fmt(m.baps*BAPS_WEIGHT)} kg</div>
+            </div>
+            <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:8px;text-align:center">
+              <div class="lbl">Reszta na Rolls (${m.rolls} szt)</div>
+              <div style="font-size:18px;font-weight:800;color:#b91c1c;margin-top:2px">${fmt(m.rolls*ROLLS_WEIGHT)} kg</div>
+            </div>
+          </div>
+        </div>`;
+      }
+    });
+    sb.innerHTML = sbHtml;
+  } else {
+    schedCard.classList.add('hidden');
+  }
 
-                    schedule.push({
-                        type: m.type,
-                        capacity: bapsInMixer + rollsInMixer,
-                        baps: bapsInMixer,
-                        rolls: rollsInMixer,
-                        weightCap: m.weightCap
-                    });
-                });
+  // wózki
+  const trolleyCard = document.getElementById('trolleyCard');
+  if(c.totalOrder>0){
+    trolleyCard.classList.remove('hidden');
+    document.getElementById('bapsTrays').textContent = c.bapsTrays.total;
+    document.getElementById('rollsTrays').textContent = c.rollsTrays.total;
+    document.getElementById('bapsOrderStat').textContent = bapsOrder;
+    document.getElementById('bapsTargetStat').textContent = c.bapsTarget;
+    document.getElementById('bapsDoneStat').textContent = c.bapsDone;
+    document.getElementById('rollsOrderStat').textContent = rollsOrder;
+    document.getElementById('rollsTargetStat').textContent = c.rollsTarget;
+    document.getElementById('rollsDoneStat').textContent = c.rollsDone;
 
-                return { schedule, splitInfo };
-            };
+    document.getElementById('bapsTrolleys').innerHTML = renderTrolleys(c.bapsDist, checkedBaps, 'baps');
+    document.getElementById('rollsTrolleys').innerHTML = renderTrolleys(c.rollsDist, checkedRolls, 'rolls');
+  } else {
+    trolleyCard.classList.add('hidden');
+  }
 
-            const { schedule, splitInfo } = generateSchedule();
+  // przepis (zwijany)
+  let rhtml='';
+  RECIPE.forEach(r=>{
+    rhtml += `<div class="recipe-item"><span>${r.name} <span class="muted">(${r.en})</span></span><span class="v">${fmt(r.per)} ${r.unit}</span></div>`;
+  });
+  document.getElementById('recipe').innerHTML = rhtml;
 
-            const calcTrays = (amount) => {
-                const fullTrays = Math.floor(amount / 24);
-                const remainder = amount % 24;
-                return { fullTrays, remainder, totalTrays: fullTrays + (remainder > 0 ? 1 : 0) };
-            };
+  // wynik / porównanie
+  const finalCard = document.getElementById('finalCard');
+  if(c.totalOrder>0){
+    finalCard.classList.remove('hidden');
+    document.getElementById('fbapsOrder').textContent = bapsOrder;
+    document.getElementById('fbapsDone').textContent = c.bapsDone;
+    document.getElementById('frollsOrder').textContent = rollsOrder;
+    document.getElementById('frollsDone').textContent = c.rollsDone;
 
-            const bapsTrays = calcTrays(bapsTarget);
-            const rollsTrays = calcTrays(rollsTarget);
+    const db = c.bapsDone - bapsOrder;
+    const dr = c.rollsDone - rollsOrder;
+    const elB = document.getElementById('fbapsDiff');
+    const elR = document.getElementById('frollsDiff');
+    elB.textContent = (db>0?'+':'')+db;
+    elR.textContent = (dr>0?'+':'')+dr;
+    elB.className = 'v ' + (db>=0?'pos':'neg');
+    elR.className = 'v ' + (dr>=0?'pos':'neg');
+  } else {
+    finalCard.classList.add('hidden');
+  }
 
-            const toggleTrolley = (type, idx) => {
-                if (type === 'baps') {
-                    setCheckedBapsTrolleys(prev => {
-                        const newArr = [...prev];
-                        newArr[idx] = !newArr[idx];
-                        return newArr;
-                    });
-                } else {
-                    setCheckedRollsTrolleys(prev => {
-                        const newArr = [...prev];
-                        newArr[idx] = !newArr[idx];
-                        return newArr;
-                    });
-                }
-            };
+  save();
+}
 
-            const handleOverride = (type, idx, newValue, isLast, currentValue) => {
-                if (newValue < 1) return;
-                const diff = newValue - currentValue;
-                if (isLast) {
-                    if (type === 'baps') setBapsTotalOffset(prev => prev + diff);
-                    else setRollsTotalOffset(prev => prev + diff);
-                } else {
-                    if (type === 'baps') setBapsOverrides(prev => ({ ...prev, [idx]: newValue }));
-                    else setRollsOverrides(prev => ({ ...prev, [idx]: newValue }));
-                }
-            };
+function renderTrolleys(dist, checked, type){
+  if(dist.length===0) return '<span class="muted" style="font-size:12px">brak</span>';
+  let html='';
+  dist.forEach((trays, idx)=>{
+    const on = checked[idx]||false;
+    html += `<div class="trol ${on?'on':''}">
+      <button class="tc-btn" onclick="event.stopPropagation();adjustTrolley('${type}',${idx},-1)">−</button>
+      <div class="trol-body" onclick="toggleTrol('${type}',${idx})">
+        <span class="chk">${on?'✅':'⬜'}</span>
+        <span class="n">${trays} tac</span>
+        <span class="u">${trays*TRAY_PCS} szt</span>
+      </div>
+      <button class="tc-btn" onclick="event.stopPropagation();adjustTrolley('${type}',${idx},1)">+</button>
+    </div>`;
+  });
+  return html;
+}
 
-            const getTrolleyDistribution = (effectiveTotal, defaultCap, overrides) => {
-                let remaining = effectiveTotal;
-                let result = [];
-                let i = 0;
-                while (remaining > 0 || overrides[i] !== undefined) {
-                    let cap = overrides[i] !== undefined ? overrides[i] : Math.min(remaining, defaultCap);
-                    if (cap < 1 && remaining > 0) cap = 1;
-                    if (cap > 0) {
-                        result.push(cap);
-                        remaining -= cap;
-                    }
-                    i++;
-                    if (i > 150) break;
-                }
-                return result;
-            };
+// ================= AKCJE =================
+function onOrder(){
+  bapsOrder = num('bapsOrder');
+  rollsOrder = num('rollsOrder');
+  if(autoMode) autoMixers();
+  // reset zaznaczeń przy zmianie celu
+  checkedBaps=[]; checkedRolls=[];
+  bapsOverrides={}; rollsOverrides={};
+  render();
+}
+function toggleAuto(){
+  autoMode = !autoMode;
+  if(autoMode) autoMixers();
+  render();
+}
+function manualMix(type, d){
+  autoMode=false;
+  if(d>0){ mixers.push(type); }
+  else{
+    const idx = mixers.lastIndexOf(type);
+    if(idx!==-1) mixers.splice(idx,1);
+  }
+  render();
+}
+function toggleTrol(type, idx){
+  if(type==='baps') checkedBaps[idx]=!checkedBaps[idx];
+  else checkedRolls[idx]=!checkedRolls[idx];
+  render();
+}
+function adjustTrolley(type, idx, delta){
+  const ov = type==='baps' ? bapsOverrides : rollsOverrides;
+  const c = computed();
+  const dist = type==='baps' ? c.bapsDist : c.rollsDist;
+  const cur = dist[idx] || 0;
+  const nv = cur + delta;
+  if(nv < 1) return;
+  ov[idx] = nv;
+  render();
+}
+function moveMixer(index, direction){
+  autoMode = false;
+  const ni = index + (direction==='up' ? -1 : 1);
+  if(ni<0 || ni>=mixers.length) return;
+  [mixers[index], mixers[ni]] = [mixers[ni], mixers[index]];
+  render();
+}
+function toggleRecipe(){
+  showRecipe = !showRecipe;
+  document.getElementById('recipe').classList.toggle('hidden', !showRecipe);
+  document.getElementById('recipeArrow').textContent = showRecipe?'▴':'▾';
+}
+function save(){
+  try{
+    localStorage.setItem('bulkiState', JSON.stringify({
+      bapsOrder, rollsOrder, mixers, autoMode, checkedBaps, checkedRolls, bapsOverrides, rollsOverrides
+    }));
+  }catch(e){}
+}
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem('bulkiState'));
+    if(!s) return;
+    bapsOrder = s.bapsOrder||0;
+    rollsOrder = s.rollsOrder||0;
+    mixers = s.mixers||[];
+    autoMode = s.autoMode!==false;
+    checkedBaps = s.checkedBaps||[];
+    checkedRolls = s.checkedRolls||[];
+    bapsOverrides = s.bapsOverrides||{};
+    rollsOverrides = s.rollsOverrides||{};
+    document.getElementById('bapsOrder').value = bapsOrder||'';
+    document.getElementById('rollsOrder').value = rollsOrder||'';
+  }catch(e){}
+}
+function resetAll(){
+  document.getElementById('bapsOrder').value='';
+  document.getElementById('rollsOrder').value='';
+  bapsOrder=0; rollsOrder=0; mixers=[]; autoMode=true; checkedBaps=[]; checkedRolls=[];
+  bapsOverrides={}; rollsOverrides={};
+  render();
+}
 
-            const effectiveBapsTotal = Math.max(1, bapsTrays.totalTrays + bapsTotalOffset);
-            const bapsDistribution = getTrolleyDistribution(effectiveBapsTotal, trolleyCap, bapsOverrides);
-            const bapsActualTrays = bapsDistribution.reduce((sum, val) => sum + val, 0);
-            const bapsActualPieces = bapsTarget + ((bapsActualTrays - bapsTrays.totalTrays) * 24);
-
-            const effectiveRollsTotal = Math.max(1, rollsTrays.totalTrays + rollsTotalOffset);
-            const rollsDistribution = getTrolleyDistribution(effectiveRollsTotal, trolleyCap, rollsOverrides);
-            const rollsActualTrays = rollsDistribution.reduce((sum, val) => sum + val, 0);
-            const rollsActualPieces = rollsTarget + ((rollsActualTrays - rollsTrays.totalTrays) * 24);
-
-            const bapsCompletedTrays = bapsDistribution.reduce((sum, val, idx) => sum + (checkedBapsTrolleys[idx] ? val : 0), 0);
-            const bapsCompletedPieces = (bapsCompletedTrays === bapsActualTrays && bapsActualTrays > 0) ? bapsActualPieces : (bapsCompletedTrays * 24);
-
-            const rollsCompletedTrays = rollsDistribution.reduce((sum, val, idx) => sum + (checkedRollsTrolleys[idx] ? val : 0), 0);
-            const rollsCompletedPieces = (rollsCompletedTrays === rollsActualTrays && rollsActualTrays > 0) ? rollsActualPieces : (rollsCompletedTrays * 24);
-
-            const renderTrolleys = (distribution, checkedState, toggleType) => {
-                if (distribution.length === 0) return null;
-                return (
-                    <div className="flex flex-wrap gap-2 mt-1">
-                        {distribution.map((trays, idx) => {
-                            const isChecked = checkedState[idx] || false;
-                            const isLast = idx === distribution.length - 1;
-                            return (
-                                <div key={idx} className={`flex items-center rounded-xl border-2 transition-all duration-200 ${isChecked ? 'border-green-400 bg-green-50 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-300'}`}>
-                                    {isChecked && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays - 1, isLast, trays); }} className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-l-lg border-r border-green-200">
-                                            <Minus className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                    <button onClick={() => toggleTrolley(toggleType, idx)} className={`flex flex-col items-center justify-center h-12 transition-all ${!isChecked ? 'w-14 rounded-xl' : 'w-10'}`}>
-                                        <span className={`text-[12px] font-bold ${isChecked ? 'text-green-800' : 'text-gray-500'}`}>{trays}tr</span>
-                                        {isChecked ? <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" /> : <Circle className="w-4 h-4 text-gray-300 mt-0.5" />}
-                                    </button>
-                                    {isChecked && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleOverride(toggleType, idx, trays + 1, isLast, trays); }} className="w-8 h-12 flex items-center justify-center text-green-700 hover:bg-green-100 font-bold rounded-r-lg border-l border-green-200">
-                                            <Plus className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                );
-            };
-
-            return (
-                <div className="min-h-screen bg-gray-100 flex justify-center font-sans text-gray-800">
-                    <div className="w-full max-w-md bg-white shadow-xl min-h-screen relative overflow-y-auto pb-20">
-                        <div className="bg-blue-600 text-white p-5 rounded-b-3xl shadow-md sticky top-0 z-10">
-                            <h1 className="text-xl font-bold flex items-center gap-2">
-                                <Settings className="w-6 h-6" />
-                                Bakery Calculator
-                            </h1>
-                            <p className="text-blue-100 text-sm mt-1">Calculating Baps & Rolls</p>
-                        </div>
-                        <div className="p-5 space-y-6">
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
-                                <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-                                    <ShoppingCart className="w-5 h-5 text-blue-500" />
-                                    Order
-                                </h2>
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Baps</label>
-                                        <input type="number" value={bapsOrder} onChange={(e) => setBapsOrder(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Rolls</label>
-                                        <input type="number" value={rollsOrder} onChange={(e) => setRollsOrder(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="font-semibold text-gray-700">Mixers</h2>
-                                    <button onClick={() => setAutoMode(true)} className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${autoMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                        {autoMode ? 'Auto ON' : 'Auto OFF'}
-                                    </button>
-                                </div>
-                                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                                    <div>
-                                        <p className="font-medium">Full mixers</p>
-                                        <p className="text-[10px] text-gray-400 leading-tight">
-                                            <span className="font-bold text-blue-500 text-xs">88kg</span><br />
-                                            Baps: 933 / Rolls: 884
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => handleManualChange('full', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
-                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.weightCap === FULL_MIXER_WEIGHT).length}</span>
-                                        <button onClick={() => handleManualChange('full', 'add')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Plus className="w-4 h-4" /></button>
-                                    </div>
-                                </div>
-                                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                                    <div>
-                                        <p className="font-medium">Small mixers</p>
-                                        <p className="text-[10px] text-gray-400 leading-tight">
-                                            <span className="font-bold text-blue-500 text-xs">58.67kg</span><br />
-                                            Baps: 622 / Rolls: 589
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => handleManualChange('small', 'subtract')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Minus className="w-4 h-4" /></button>
-                                        <span className="w-6 text-center font-bold text-lg">{mixers.filter(m => m.weightCap === SMALL_MIXER_WEIGHT).length}</span>
-                                        <button onClick={() => handleManualChange('small', 'add')} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200"><Plus className="w-4 h-4" /></button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
-                                <button
-                                    onClick={() => setShowRecipe(!showRecipe)}
-                                    className="w-full flex items-center justify-between text-blue-700 font-bold"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <ClipboardList className="w-5 h-5" />
-                                        <span>Recipe Assistant</span>
-                                    </div>
-                                    <Icon name={showRecipe ? 'chevron-up' : 'chevron-down'} className="w-5 h-5" />
-                                </button>
-
-                                {showRecipe && (
-                                    <div className="mt-4 space-y-4 animate-fade-in-up">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
-                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Full (88kg)</p>
-                                                <ul className="mt-2 space-y-1 text-[11px] text-gray-600 font-medium">
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Flour</span> <span className="font-bold text-blue-700">48.00 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Water</span> <span className="font-bold text-blue-700">28.50 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Yeast</span> <span className="font-bold text-blue-700">4.00 L</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Sugar</span> <span>1.050 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Oil</span> <span>1.050 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Vinegar</span> <span>0.960 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Salt</span> <span>0.900 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Improv.</span> <span>0.900 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Gluten</span> <span>0.480 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Psyllium</span> <span>0.450 kg</span></li>
-                                                    <li className="flex justify-between text-[10px] opacity-70"><span>Others</span> <span>1.710 kg</span></li>
-                                                </ul>
-                                            </div>
-                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
-                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Small (58.67kg)</p>
-                                                <ul className="mt-2 space-y-1 text-[11px] text-gray-600 font-medium">
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Flour</span> <span className="font-bold text-blue-700">32.00 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Water</span> <span className="font-bold text-blue-700">19.00 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Yeast</span> <span className="font-bold text-blue-700">2.67 L</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Sugar</span> <span>0.700 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Oil</span> <span>0.700 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Vinegar</span> <span>0.640 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Salt</span> <span>0.600 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Improv.</span> <span>0.600 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Gluten</span> <span>0.320 kg</span></li>
-                                                    <li className="flex justify-between border-b border-gray-50 pb-1"><span>Psyllium</span> <span>0.300 kg</span></li>
-                                                    <li className="flex justify-between text-[10px] opacity-70"><span>Others</span> <span>1.140 kg</span></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            {totalOrder > 0 && totalProduction > 0 && (
-                                <div className="space-y-6 animate-fade-in-up">
-                                    <div className={`p-4 rounded-2xl border ${buffer >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            {buffer >= 0 ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <AlertCircle className="w-5 h-5 text-red-600" />}
-                                            <h3 className={`font-bold ${buffer >= 0 ? 'text-green-800' : 'text-red-800'}`}>
-                                                {buffer >= 0 ? `Surplus: ${buffer} pcs` : `Shortage: ${Math.abs(buffer)} pcs`}
-                                            </h3>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2 mt-4">
-                                            <div className="bg-white p-3 rounded-xl shadow-sm border border-black/5">
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Target Baps</p>
-                                                <p className="text-xl font-bold">{bapsTarget}</p>
-                                                <p className="text-xs text-gray-400 mt-1">{bapsOrder} {buffer >= 0 ? '+' : ''}{bapsBuffer}</p>
-                                            </div>
-                                            <div className="bg-white p-3 rounded-xl shadow-sm border border-black/5">
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Target Rolls</p>
-                                                <p className="text-xl font-bold">{rollsTarget}</p>
-                                                <p className="text-xs text-gray-400 mt-1">{rollsOrder} {buffer >= 0 ? '+' : ''}{rollsBuffer}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                                            <List className="w-5 h-5 text-blue-500" />
-                                            <h2 className="font-semibold text-gray-700">Production Schedule</h2>
-                                        </div>
-                                        <div className="p-0">
-                                            {schedule.map((mixer, idx) => {
-                                                const isSplit = mixer.baps > 0 && mixer.rolls > 0;
-                                                const isSmall = mixer.weightCap === SMALL_MIXER_WEIGHT;
-
-                                                let rowBg = isSplit ? 'bg-red-50' : (isSmall ? 'bg-purple-50/50' : '');
-                                                let circleColor = isSplit ? 'bg-red-200 text-red-800' : (isSmall ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700');
-                                                let textColor = isSplit ? 'text-red-800' : (isSmall ? 'text-purple-800' : '');
-
-                                                return (
-                                                    <div key={idx} className={`flex border-b border-gray-100 last:border-0 p-4 items-center transition-colors ${rowBg}`}>
-                                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 ${circleColor}`}>
-                                                            #{idx + 1}
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <div className="flex justify-between items-center">
-                                                                <p className={`font-semibold text-sm ${textColor}`}>{mixer.type} ({mixer.capacity} pcs)</p>
-                                                                <div className="flex gap-1">
-                                                                    <button
-                                                                        onClick={() => moveMixer(idx, 'up')}
-                                                                        disabled={idx === 0}
-                                                                        className={`p-1 rounded bg-white border border-gray-200 shadow-sm ${idx === 0 ? 'opacity-30' : 'hover:bg-blue-50 text-blue-600'}`}
-                                                                    >
-                                                                        <ChevronUp className="w-4 h-4" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => moveMixer(idx, 'down')}
-                                                                        disabled={idx === schedule.length - 1}
-                                                                        className={`p-1 rounded bg-white border border-gray-200 shadow-sm ${idx === schedule.length - 1 ? 'opacity-30' : 'hover:bg-blue-50 text-blue-600'}`}
-                                                                    >
-                                                                        <ChevronDown className="w-4 h-4" />
-                                                                    </button>
-                                                                    {isSplit && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider animate-pulse ml-1">Change!</span>}
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex gap-2 mt-1">
-                                                                {mixer.baps > 0 && <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">Baps: {mixer.baps}</span>}
-                                                                {mixer.rolls > 0 && <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">Rolls: {mixer.rolls}</span>}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {splitInfo && (
-                                        <div className="bg-red-50 rounded-2xl border border-red-200 p-4 flex items-start gap-3 shadow-sm">
-                                            <div className="mt-1"><Scale className="w-5 h-5 text-red-600" /></div>
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-red-900">Split in Mixer #{splitInfo.mixerNum}</h3>
-                                                <div className="mt-3 grid grid-cols-2 gap-3">
-                                                    <div className="bg-white p-3 rounded-xl border border-red-100 shadow-sm text-center">
-                                                        <p className="text-xs text-red-800 font-medium">For Baps ({splitInfo.bapsAmount} pcs)</p>
-                                                        <p className="text-2xl font-black text-red-600 mt-1">{splitInfo.weight} kg</p>
-                                                    </div>
-                                                    <div className="bg-white p-3 rounded-xl border border-red-100 shadow-sm text-center">
-                                                        <p className="text-xs text-red-800 font-medium">Rest for Rolls ({splitInfo.rollsAmount} pcs)</p>
-                                                        <p className="text-2xl font-black text-red-600 mt-1">{splitInfo.remainingWeight} kg</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-                                                <Package className="w-5 h-5 text-blue-500" />
-                                                Trolley Management
-                                            </h2>
-                                        </div>
-
-                                        <div className="space-y-4">
-
-                                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                <div className="flex flex-wrap justify-between items-start mb-3 gap-2">
-                                                    <div>
-                                                        <span className="font-bold text-amber-700 block text-lg leading-tight">Baps Trolleys</span>
-                                                        <span className="text-[11px] text-gray-500">Target: {bapsTrays.totalTrays} trays</span>
-                                                    </div>
-                                                    <div className="flex gap-1.5 text-right justify-end flex-wrap">
-                                                        <div className="bg-white px-2 py-1 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center min-w-[55px] text-center">
-                                                            <span className="text-[9px] text-gray-400 font-bold uppercase block leading-tight">Order</span>
-                                                            <span className="font-bold text-base leading-none mt-1 text-gray-700">
-                                                                {Number(bapsOrder) || 0} <span className="text-[10px] font-normal text-gray-500">pcs</span>
-                                                            </span>
-                                                        </div>
-                                                        <div className="bg-white px-2 py-1 rounded-lg border border-amber-100 shadow-sm flex flex-col justify-center min-w-[50px] text-center">
-                                                            <span className="text-[9px] text-gray-400 font-bold uppercase block leading-tight">Plan</span>
-                                                            <span className={`font-bold text-base leading-none mt-1 ${bapsActualTrays !== bapsTrays.totalTrays ? 'text-blue-600' : 'text-gray-700'}`}>
-                                                                {bapsActualTrays} <span className="text-[10px] font-normal text-gray-500">tr.</span>
-                                                            </span>
-                                                        </div>
-                                                        <div className={`bg-white px-3 py-1.5 rounded-lg border shadow-sm min-w-[75px] text-center ${bapsCompletedTrays > 0 && bapsCompletedTrays === bapsActualTrays ? 'border-green-400 bg-green-50' : 'border-green-200'}`}>
-                                                            <span className="text-[10px] text-green-600 font-bold uppercase block leading-tight">Completed</span>
-                                                            <span className="font-black text-xl leading-none text-green-700 mt-1 block">
-                                                                {bapsCompletedTrays} <span className="text-xs font-normal opacity-70 text-green-600">tr.</span>
-                                                            </span>
-                                                            <span className="block text-[11px] font-bold mt-0.5 text-green-600">
-                                                                {bapsCompletedTrays === bapsActualTrays ? `${bapsCompletedPieces} pcs` : `~${bapsCompletedPieces} pcs`}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {renderTrolleys(bapsDistribution, checkedBapsTrolleys, 'baps')}
-                                            </div>
-
-                                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                <div className="flex flex-wrap justify-between items-start mb-3 gap-2">
-                                                    <div>
-                                                        <span className="font-bold text-indigo-700 block text-lg leading-tight">Rolls Trolleys</span>
-                                                        <span className="text-[11px] text-gray-500">Target: {rollsTrays.totalTrays} trays</span>
-                                                    </div>
-                                                    <div className="flex gap-1.5 text-right justify-end flex-wrap">
-                                                        <div className="bg-white px-2 py-1 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center min-w-[55px] text-center">
-                                                            <span className="text-[9px] text-gray-400 font-bold uppercase block leading-tight">Order</span>
-                                                            <span className="font-bold text-base leading-none mt-1 text-gray-700">
-                                                                {Number(rollsOrder) || 0} <span className="text-[10px] font-normal text-gray-500">pcs</span>
-                                                            </span>
-                                                        </div>
-                                                        <div className="bg-white px-2 py-1 rounded-lg border border-indigo-100 shadow-sm flex flex-col justify-center min-w-[50px] text-center">
-                                                            <span className="text-[9px] text-gray-400 font-bold uppercase block leading-tight">Plan</span>
-                                                            <span className={`font-bold text-base leading-none mt-1 ${rollsActualTrays !== rollsTrays.totalTrays ? 'text-blue-600' : 'text-gray-700'}`}>
-                                                                {rollsActualTrays} <span className="text-[10px] font-normal text-gray-500">tr.</span>
-                                                            </span>
-                                                        </div>
-                                                        <div className={`bg-white px-3 py-1.5 rounded-lg border shadow-sm min-w-[75px] text-center ${rollsCompletedTrays > 0 && rollsCompletedTrays === rollsActualTrays ? 'border-green-400 bg-green-50' : 'border-green-200'}`}>
-                                                            <span className="text-[10px] text-green-600 font-bold uppercase block leading-tight">Completed</span>
-                                                            <span className="font-black text-xl leading-none text-green-700 mt-1 block">
-                                                                {rollsCompletedTrays} <span className="text-xs font-normal opacity-70 text-green-600">tr.</span>
-                                                            </span>
-                                                            <span className="block text-[11px] font-bold mt-0.5 text-green-600">
-                                                                {rollsCompletedTrays === rollsActualTrays ? `${rollsCompletedPieces} pcs` : `~${rollsCompletedPieces} pcs`}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {renderTrolleys(rollsDistribution, checkedRollsTrolleys, 'rolls')}
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+// start
+load();
+render();
+</script>
 </body>
-
 </html>
